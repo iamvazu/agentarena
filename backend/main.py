@@ -7,7 +7,7 @@ from database import engine, get_db
 
 from fastapi.middleware.cors import CORSMiddleware
 
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine) # Moved to prevent startup crashes
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
