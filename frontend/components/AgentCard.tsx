@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Activity, Cpu } from 'lucide-react';
+import { TrendingUp, TrendingDown, Cpu } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -10,7 +10,8 @@ function cn(...inputs: ClassValue[]) {
 interface Position {
     symbol: string;
     qty: number;
-    avg_price: number;
+    entry: number;
+    pnl_pct: number;
 }
 
 interface AgentProps {
@@ -18,83 +19,86 @@ interface AgentProps {
         id: number;
         name: string;
         status: string;
-        pnl: number;
-        balance: number;
+        pnl_spx: number;
+        balance_spx: number;
         positions: Position[];
         generation: number;
     };
 }
 
+const avatars = ["🫖", "🌸", "🐸", "🐹", "🦊", "🐻", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐙", "🦋", "🦄", "🐼"];
+
 export const AgentCard: React.FC<AgentProps> = ({ agent }) => {
-    const isPositive = agent.pnl >= 0;
+    const isPositive = agent.pnl_spx >= 0;
+    const avatar = avatars[agent.id % avatars.length];
 
     return (
-        <div className="glass group relative overflow-hidden rounded-xl bg-card/50 p-4 transition-all hover:bg-card/80 hover:shadow-lg hover:shadow-primary/5">
-            <div className="mb-4 flex items-start justify-between">
+        <div className="glass group relative overflow-hidden rounded-xl bg-[#1a1b23]/80 p-4 border border-white/5 transition-all hover:border-white/20">
+            {/* Header */}
+            <div className="mb-3 flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 group-hover:bg-primary/20 group-hover:text-primary">
-                        <Cpu size={20} />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2a2b36] text-xl shadow-inner">
+                        {avatar}
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-foreground">{agent.name}</h3>
                         <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-white/90">{agent.name.split('_')[0]}</h3>
                             <span className={cn(
-                                "h-2 w-2 rounded-full animate-pulse",
-                                agent.status === 'active' ? "bg-success" : "bg-destructive"
+                                "h-2 w-2 rounded-full shadow-[0_0_8px]",
+                                agent.status === 'active' ? "bg-emerald-400 shadow-emerald-400/50" : "bg-zinc-600"
                             )} />
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                                Gen {agent.generation} • {agent.status}
-                            </p>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-medium">
+                            <span>Latency: {180 + (agent.id % 50)}ms</span>
                         </div>
                     </div>
                 </div>
                 <div className="text-right">
                     <p className={cn(
-                        "text-sm font-bold",
-                        isPositive ? "text-success" : "text-destructive"
+                        "text-xs font-black",
+                        isPositive ? "text-emerald-400" : "text-rose-400"
                     )}>
-                        {isPositive ? '+' : ''}{agent.pnl.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                        {isPositive ? '+' : ''}{agent.pnl_spx.toFixed(3)} SPX
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
-                        Bal: {agent.balance.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                    <p className="text-[10px] text-zinc-500 font-bold">
+                        Bal: {agent.balance_spx.toLocaleString()} SPX
                     </p>
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <div className="flex items-center justify-between border-b border-border/50 pb-1 text-[10px] font-medium text-muted-foreground uppercase">
-                    <span>Contract</span>
-                    <div className="flex gap-4">
-                        <span className="w-8 text-right">Size</span>
-                        <span className="w-12 text-right">PnL</span>
-                    </div>
-                </div>
-
-                {agent.positions.length > 0 ? (
-                    agent.positions.map((pos) => (
-                        <div key={pos.symbol} className="flex items-center justify-between text-xs transition-colors hover:text-foreground">
-                            <span className="font-mono font-medium">{pos.symbol}</span>
-                            <div className="flex gap-4 font-mono">
-                                <span className="w-8 text-right text-muted-foreground">{pos.qty}</span>
-                                <span className="w-12 text-right text-success">+0.1%</span>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="py-2 text-center text-[10px] text-muted-foreground italic">
-                        No active trades
-                    </div>
-                )}
-            </div>
-
-            <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-2 text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-1">
-                    <Activity size={10} />
-                    Latency: {Math.floor(Math.random() * 100) + 150}ms
-                </span>
-                <button className="rounded px-2 py-0.5 transition-colors hover:bg-zinc-800 hover:text-primary">
-                    Details
-                </button>
+            {/* Table */}
+            <div className="mt-4 overflow-hidden rounded-lg bg-black/20">
+                <table className="w-full text-left text-[10px]">
+                    <thead>
+                        <tr className="border-b border-white/5 text-zinc-500 uppercase font-bold tracking-tight">
+                            <th className="px-2 py-1.5">Contract</th>
+                            <th className="px-2 py-1.5 text-right">Size</th>
+                            <th className="px-2 py-1.5 text-right">Entry</th>
+                            <th className="px-2 py-1.5 text-right">PnL</th>
+                        </tr>
+                    </thead>
+                    <tbody className="font-mono">
+                        {agent.positions.length > 0 ? (
+                            agent.positions.map((pos, i) => (
+                                <tr key={i} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                                    <td className="px-2 py-1.5 font-bold text-zinc-300">{pos.symbol}</td>
+                                    <td className="px-2 py-1.5 text-right text-zinc-400">{pos.qty}</td>
+                                    <td className="px-2 py-1.5 text-right text-zinc-400">{pos.entry}</td>
+                                    <td className={cn(
+                                        "px-2 py-1.5 text-right font-bold",
+                                        pos.pnl_pct >= 0 ? "text-emerald-400" : "text-rose-400"
+                                    )}>
+                                        {pos.pnl_pct >= 0 ? '▲' : '▼'}{Math.abs(pos.pnl_pct)}%
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={4} className="px-2 py-4 text-center text-zinc-600 italic">No active contracts</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

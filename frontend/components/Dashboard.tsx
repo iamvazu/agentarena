@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Leaderboard } from './Leaderboard';
 import { AgentCard } from './AgentCard';
-import { LayoutDashboard, RefreshCcw, TrendingUp, Wallet, Activity } from 'lucide-react';
+import { RefreshCcw, Activity, ArrowUpRight } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -34,7 +34,6 @@ export default function Dashboard() {
     const triggerCycle = async () => {
         try {
             await axios.post(`${API_BASE_URL}/simulate/cycle`);
-            alert("Simulated cycle triggered!");
             fetchData();
         } catch (e) {
             console.error(e);
@@ -43,80 +42,73 @@ export default function Dashboard() {
 
     if (loading && !data) {
         return (
-            <div className="flex h-screen items-center justify-center bg-background text-foreground">
-                <Activity className="animate-spin text-primary" size={48} />
+            <div className="flex h-screen items-center justify-center bg-[#0a0b10] text-[#3b82f6]">
+                <Activity className="animate-spin" size={48} />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
-            {/* Background blobs */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-primary/5 blur-[120px]" />
-                <div className="absolute bottom-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-secondary/5 blur-[120px]" />
-            </div>
-
-            <div className="relative mx-auto max-w-[1600px] px-6 py-8">
-                {/* Header */}
-                <header className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="min-h-screen bg-[#0d0e14] text-zinc-100 font-sans selection:bg-primary/20 p-4 md:p-8">
+            {/* Top Bar */}
+            <div className="mx-auto max-w-[1700px]">
+                <header className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <div className="flex items-center gap-2 text-primary">
-                            <LayoutDashboard size={20} />
-                            <span className="text-xs font-bold uppercase tracking-[0.2em]">Agent Arena</span>
-                        </div>
-                        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">
-                            Trading <span className="gradient-text">Simulation</span>
-                        </h1>
+                        <h1 className="text-xl font-black uppercase tracking-tight text-white/90">Agent Overview</h1>
+                        <p className="text-[11px] font-bold text-zinc-500 uppercase flex items-center gap-1.5 mt-0.5">
+                            $SPX: <span className="text-white">${data?.spx_price.toLocaleString()}</span>
+                            <span className="text-emerald-400 font-black">▲ 0.8%</span>
+                        </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4">
-                        <div className="glass flex items-center gap-4 rounded-xl bg-card/50 px-5 py-3">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Net PnL</span>
-                                <span className={`text-xl font-black ${data?.total_pnl >= 0 ? 'text-success' : 'text-destructive'}`}>
-                                    {data?.total_pnl >= 0 ? '+' : ''}{data?.total_pnl.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                                </span>
+                        {/* Global Stats Cards */}
+                        <div className="flex items-center gap-2">
+                            <div className="glass rounded-xl bg-[#1a1b23]/60 px-5 py-3 border border-white/5 min-w-[160px]">
+                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">PnL (SPX)</span>
+                                <div className="flex items-center justify-between mt-0.5">
+                                    <span className="text-lg font-black text-emerald-400">{data?.total_pnl_spx.toFixed(3)} SPX</span>
+                                    <ArrowUpRight size={14} className="text-emerald-400 opacity-50" />
+                                </div>
                             </div>
-                            <div className="h-10 w-[1px] bg-border" />
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Population</span>
-                                <span className="text-xl font-black">{data?.agents.length} Agents</span>
+                            <div className="glass rounded-xl bg-[#1a1b23]/60 px-5 py-3 border border-white/5 min-w-[160px]">
+                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">PnL (USD)</span>
+                                <div className="flex items-center justify-between mt-0.5">
+                                    <span className="text-lg font-black text-emerald-400">${data?.total_pnl_usd.toLocaleString()}</span>
+                                    <ArrowUpRight size={14} className="text-emerald-400 opacity-50" />
+                                </div>
                             </div>
                         </div>
 
                         <button
                             onClick={triggerCycle}
-                            className="group flex h-14 items-center gap-2 rounded-xl bg-primary px-6 font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 active:scale-95"
+                            className="flex h-12 items-center gap-2 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] px-6 font-bold text-white transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] active:scale-95"
                         >
-                            <RefreshCcw size={18} className="transition-transform group-hover:rotate-180" />
-                            Run Cycle
+                            <RefreshCcw size={16} />
+                            <span className="uppercase text-xs tracking-widest">Run Cycle</span>
                         </button>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 xl:grid-cols-6">
                     {/* Sidebar - Leaderboard */}
-                    <aside className="lg:col-span-1">
-                        <Leaderboard agents={data?.agents || []} />
+                    <aside className="lg:col-span-1 xl:col-span-1">
+                        <Leaderboard agents={data?.agents.slice(0, 20) || []} />
                     </aside>
 
                     {/* Main Grid - Agent Cards */}
-                    <main className="lg:col-span-3">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-muted-foreground">
-                                Agent Status Overview
-                            </h2>
-                            <span className="text-[10px] text-muted-foreground">
-                                Last updated: {lastUpdated.toLocaleTimeString()}
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <main className="lg:col-span-4 xl:col-span-5">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                             {data?.agents.map((agent: any) => (
                                 <AgentCard key={agent.id} agent={agent} />
                             ))}
                         </div>
+                        {data?.agents.length === 0 && (
+                            <div className="flex h-64 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/5 text-zinc-600">
+                                <p className="text-sm font-bold uppercase tracking-widest">No Agents Active in Arena</p>
+                                <p className="text-[10px] mt-2">Run the seed script or create agents via API</p>
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>

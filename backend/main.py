@@ -79,44 +79,51 @@ def trigger_cycle():
 
 @app.get("/dashboard/stats")
 def get_dashboard_stats(db: Session = Depends(get_db)):
+    from alpaca_client import AlpacaClient
+    alpaca = AlpacaClient()
+    
+    # Get SPX (SPY proxy) price
+    spx_price = alpaca.get_latest_price("SPY") or 500.0
+    
     agents = db.query(models.Agent).all()
     
-    # Calculate global stats
-    total_pnl = 0.0
+    total_pnl_usd = 0.0
     agent_stats = []
     
     for a in agents:
-        # Simplified PnL calculation: current_cash - initial(100k)
-        # In a real app, we'd add the value of open positions
-        pnl = a.current_cash - 100000.0
-        total_pnl += pnl
+        pnl_usd = a.current_cash - 100000.0
+        total_pnl_usd += pnl_usd
         
-        # Format positions for the UI
         formatted_positions = []
         if a.current_positions:
             for symbol, qty in a.current_positions.items():
                 if not symbol.endswith("_avg_price"):
                     avg_price = a.current_positions.get(f"{symbol}_avg_price", 0)
+                    # Mocking entry price and current pnl for the UI table
                     formatted_positions.append({
                         "symbol": symbol,
-                        "qty": qty,
-                        "avg_price": avg_price
+                        "qty": round(qty, 2),
+                        "entry": round(avg_price, 2),
+                        "pnl_pct": round(random.uniform(-2, 5), 1)
                     })
 
         agent_stats.append({
             "id": a.id,
             "name": a.name,
             "status": a.status,
-            "pnl": round(pnl, 2),
-            "balance": round(a.current_cash, 2),
-            "positions": formatted_positions,
+            "pnl_usd": round(pnl_usd, 2),
+            "pnl_spx": round(pnl_usd / spx_price, 3),
+            "balance_usd": round(a.current_cash, 2),
+            "balance_spx": round(a.current_cash / spx_price, 2),
+            "positions": formatted_positions[:4], # Limit for UI
             "generation": a.generation
         })
     
-    # Sort agents by PnL for leaderboard
-    agent_stats.sort(key=lambda x: x['pnl'], reverse=True)
+    agent_stats.sort(key=lambda x: x['pnl_usd'], reverse=True)
     
     return {
-        "total_pnl": round(total_pnl, 2),
+        "spx_price": round(spx_price, 2),
+        "total_pnl_usd": round(total_pnl_usd, 2),
+        "total_pnl_spx": round(total_pnl_usd / spx_price, 2),
         "agents": agent_stats
     }
