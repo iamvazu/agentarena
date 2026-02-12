@@ -9,13 +9,12 @@ import { RefreshCcw, Activity, ArrowUpRight } from 'lucide-react';
 const getApiUrl = () => {
     if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
     if (typeof window !== 'undefined') {
-        // If we're on Heroku/Production, default to the current domain
         const hostname = window.location.hostname;
         if (hostname !== 'localhost' && !hostname.includes('127.0.0.1')) {
-            return `https://${hostname}`;
+            return '/api';
         }
     }
-    return 'http://localhost:8000';
+    return 'http://localhost:8000/api';
 };
 
 const API_BASE_URL = getApiUrl();
