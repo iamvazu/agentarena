@@ -9,8 +9,10 @@ import datetime
 import random
 
 celery = Celery(__name__)
-celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
-celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379")
+# Standard Heroku Redis URL is REDIS_URL
+redis_url = os.environ.get("REDIS_URL", os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379"))
+celery.conf.broker_url = redis_url
+celery.conf.result_backend = redis_url
 
 alpaca = AlpacaClient()
 
