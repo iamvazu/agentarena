@@ -4,8 +4,17 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 def get_database_url():
-    url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/agent_arena")
-    if url and url.startswith("postgres://"):
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        # Fallback for local development
+        url = "postgresql://postgres:password@localhost:5432/agent_arena"
+        print("DATABASE_URL not found, defaulting to localhost.")
+    else:
+        # Masked print for debugging
+        masked_url = url.split("@")[-1] if "@" in url else url
+        print(f"Connecting to database at: {masked_url}")
+
+    if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql://", 1)
     return url
 
