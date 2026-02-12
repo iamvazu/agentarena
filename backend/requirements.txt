@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pandas
+numpy
+alpaca-trade-api
+asyncpg
+sqlalchemy
+celery
+litellm
+python-dotenv
+redis
+psycopg2-binary
+requests
