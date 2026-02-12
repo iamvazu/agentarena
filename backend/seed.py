@@ -2,6 +2,13 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 import models
 import random
+import os
+
+# Heroku DATABASE_URL patch
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    os.environ["DATABASE_URL"] = DATABASE_URL
 
 # Ensure tables are created
 models.Base.metadata.create_all(bind=engine)
