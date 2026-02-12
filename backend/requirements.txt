@@ -11,3 +11,5 @@ python-dotenv
 redis
 psycopg2-binary
 requests
+gunicorn
+uvicorn[standard]

@@ -5,9 +5,19 @@ from pydantic import BaseModel
 import models
 from database import engine, get_db
 
+from fastapi.middleware.cors import CORSMiddleware
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, specify actual origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Pydantic models
 class DNA(BaseModel):
@@ -66,3 +76,47 @@ def trigger_cycle():
     from worker import run_market_cycle
     run_market_cycle.delay()
     return {"message": "Market cycle task queued"}
+
+@app.get("/dashboard/stats")
+def get_dashboard_stats(db: Session = Depends(get_db)):
+    agents = db.query(models.Agent).all()
+    
+    # Calculate global stats
+    total_pnl = 0.0
+    agent_stats = []
+    
+    for a in agents:
+        # Simplified PnL calculation: current_cash - initial(100k)
+        # In a real app, we'd add the value of open positions
+        pnl = a.current_cash - 100000.0
+        total_pnl += pnl
+        
+        # Format positions for the UI
+        formatted_positions = []
+        if a.current_positions:
+            for symbol, qty in a.current_positions.items():
+                if not symbol.endswith("_avg_price"):
+                    avg_price = a.current_positions.get(f"{symbol}_avg_price", 0)
+                    formatted_positions.append({
+                        "symbol": symbol,
+                        "qty": qty,
+                        "avg_price": avg_price
+                    })
+
+        agent_stats.append({
+            "id": a.id,
+            "name": a.name,
+            "status": a.status,
+            "pnl": round(pnl, 2),
+            "balance": round(a.current_cash, 2),
+            "positions": formatted_positions,
+            "generation": a.generation
+        })
+    
+    # Sort agents by PnL for leaderboard
+    agent_stats.sort(key=lambda x: x['pnl'], reverse=True)
+    
+    return {
+        "total_pnl": round(total_pnl, 2),
+        "agents": agent_stats
+    }
