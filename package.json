@@ -1,0 +1,12 @@
+{
+    "name": "agent-arena-monorepo",
+    "version": "1.0.0",
+    "private": true,
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "scripts": {
+        "heroku-postbuild": "npm install --prefix frontend && npm run build --prefix frontend",
+        "start": "npm start --prefix frontend"
+    }
+}
