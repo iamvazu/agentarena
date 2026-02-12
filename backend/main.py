@@ -56,7 +56,13 @@ def read_agent(agent_id: int, db: Session = Depends(get_db)):
     return db_agent
 
 @app.post("/simulate/evolve")
-def trigger_evolution(db: Session = Depends(get_db)):
-    # This would trigger the genetic algorithm logic
-    # Ideally this is an async task via Celery
-    return {"message": "Evolution triggered (mock)"}
+def trigger_evolution():
+    from worker import evolve_agents
+    evolve_agents.delay()
+    return {"message": "Evolution task queued"}
+
+@app.post("/simulate/cycle")
+def trigger_cycle():
+    from worker import run_market_cycle
+    run_market_cycle.delay()
+    return {"message": "Market cycle task queued"}
