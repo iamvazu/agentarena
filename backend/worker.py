@@ -11,6 +11,14 @@ import random
 celery = Celery(__name__)
 # Standard Heroku Redis URL is REDIS_URL
 redis_url = os.environ.get("REDIS_URL", os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379"))
+
+# Heroku Redis SSL Fix: Some plans require rediss:// and cert verification off
+if redis_url and redis_url.startswith("rediss://"):
+    if "ssl_cert_reqs" not in redis_url:
+        # Append params to handle self-signed certs common on Heroku
+        separator = "&" if "?" in redis_url else "?"
+        redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
+
 celery.conf.broker_url = redis_url
 celery.conf.result_backend = redis_url
 
